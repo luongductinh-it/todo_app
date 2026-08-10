@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../common_widgets/async_value_ui.dart';
 import '../../../../utils/appstyles.dart';
 import '../../../../utils/size_config.dart';
+import '../controllers/auth_controller.dart';
 import '../widgets/common_text_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -21,6 +23,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       TextEditingController();
   bool isChecked = false;
 
+  void _validateDetails() {
+    String email = _emailEditingController.text.trim();
+    String password = _passwordEditingController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ensure all details are filled!',
+            style: AppStyles.normalTextStyle.copyWith(color: Colors.red),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ref
+          .read(authControllerProvider.notifier)
+          .createUserWithEmailAndPassword(email: email, password: password);
+    }
+  }
+
   @override
   void dispose() {
     _emailEditingController.dispose();
@@ -31,6 +53,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+
+    final state = ref.watch(authControllerProvider);
+    
+    ref.listen<AsyncValue>(authControllerProvider, (_, state) {
+      state.showAlertDialogError(context);
+    });
+
     return SafeArea(
       child: Scaffold(
         body: Padding(
@@ -79,7 +108,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 SizedBox(height: SizeConfig.getProportionateHeight(25)),
 
                 InkWell(
-                  onTap: () {},
+                  onTap: _validateDetails,
                   child: Container(
                     alignment: Alignment.center,
                     height: SizeConfig.getProportionateHeight(50),
@@ -88,7 +117,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
+                    child: state.isLoading ? const CircularProgressIndicator() : Text(
                       'Register Me Now',
                       style: AppStyles.normalTextStyle.copyWith(
                         color: Colors.white,
@@ -182,7 +211,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        context.goNamed(AppRouter.register.name);
+                        context.goNamed(AppRouter.signIn.name);
                       },
                       child: Text(
                         "Sign In",

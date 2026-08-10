@@ -1,3 +1,5 @@
+import 'package:firebase_todo_app/common_widgets/async_value_ui.dart';
+import 'package:firebase_todo_app/features/authentication/presentation/controllers/auth_controller.dart';
 import 'package:firebase_todo_app/features/authentication/presentation/widgets/common_text_field.dart';
 import 'package:firebase_todo_app/routes/routes.dart';
 import 'package:firebase_todo_app/utils/appstyles.dart';
@@ -20,6 +22,26 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       TextEditingController();
   bool isChecked = false;
 
+  void _validateDetails() {
+    String email = _emailEditingController.text.trim();
+    String password = _passwordEditingController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ensure all details are filled!',
+            style: AppStyles.normalTextStyle.copyWith(color: Colors.red),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ref
+          .read(authControllerProvider.notifier)
+          .signInWithEmailAndPassword(email: email, password: password);
+    }
+  }
+
   @override
   void dispose() {
     _emailEditingController.dispose();
@@ -30,6 +52,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    final state = ref.watch(authControllerProvider);
+    ref.listen<AsyncValue>(authControllerProvider, (_, state) {
+      state.showAlertDialogError(context);
+    });
+
     return SafeArea(
       child: Scaffold(
         body: Padding(
@@ -81,7 +108,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 SizedBox(height: SizeConfig.getProportionateHeight(25)),
 
                 InkWell(
-                  onTap: () {},
+                  onTap: _validateDetails,
                   child: Container(
                     alignment: Alignment.center,
                     height: SizeConfig.getProportionateHeight(50),
@@ -90,12 +117,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      'Sign Me In',
-                      style: AppStyles.normalTextStyle.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: state.isLoading
+                        ? const CircularProgressIndicator()
+                        : Text(
+                            'Sign Me In',
+                            style: AppStyles.normalTextStyle.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(height: SizeConfig.getProportionateHeight(10)),
