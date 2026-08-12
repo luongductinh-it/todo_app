@@ -35,7 +35,6 @@ class _MainScreenState extends State<MainScreen>
   Widget build(BuildContext context) {
     _tabController.index = currentIndex;
     return Scaffold(
-      appBar: AppBar(title: Text('Main Screen')),
       body: TabBarView(
         controller: _tabController,
         children: [
