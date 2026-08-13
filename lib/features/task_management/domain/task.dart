@@ -8,12 +8,12 @@ class Task {
   final String date;
   final bool isComplete;
   Task({
-    required this.id,
+    this.id = '',
     required this.title,
     required this.description,
     required this.priority,
     required this.date,
-    required this.isComplete,
+    this.isComplete = false,
   });
 
 

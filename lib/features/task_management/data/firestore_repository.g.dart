@@ -185,7 +185,7 @@ final class LoadCompleteTasksProvider
   }
 }
 
-String _$loadCompleteTasksHash() => r'4f79f659e4714a0ca5dc045092875984b430ce50';
+String _$loadCompleteTasksHash() => r'afdbcf0f5470e9251828ffa64a212ceda6548107';
 
 final class LoadCompleteTasksFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Task>>, String> {
@@ -260,7 +260,7 @@ final class LoadInCompleteTasksProvider
 }
 
 String _$loadInCompleteTasksHash() =>
-    r'30e9fd21f9130b3622bcb1b416fb818e077f4672';
+    r'438e0365f55fca5966956457fe47efd10e2e4106';
 
 final class LoadInCompleteTasksFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Task>>, String> {

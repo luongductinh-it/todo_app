@@ -1,3 +1,7 @@
+import 'package:firebase_todo_app/common_widgets/async_value_ui.dart';
+import 'package:firebase_todo_app/features/authentication/data/auth_repository.dart';
+import 'package:firebase_todo_app/features/task_management/domain/task.dart';
+import 'package:firebase_todo_app/features/task_management/presentation/controllers/firestore_controller.dart';
 import 'package:firebase_todo_app/features/task_management/presentation/widgets/title_description.dart';
 import 'package:firebase_todo_app/utils/appstyles.dart';
 import 'package:firebase_todo_app/utils/size_config.dart';
@@ -28,6 +32,12 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
+    final userId = ref.watch(currentUserProvider)!.uid;
+    final state = ref.watch(firestoreControllerProvider);
+    ref.listen<AsyncValue>(firestoreControllerProvider, (_, state) {
+      state.showAlertDialogError(context);
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -65,7 +75,7 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                 ),
                 Expanded(
                   child: SizedBox(
-                    height: SizeConfig.getProportionateHeight(40),
+                    height: SizeConfig.getProportionateHeight(48),
                     child: ListView.builder(
                       itemCount: _priorities.length,
                       scrollDirection: Axis.horizontal,
@@ -111,7 +121,24 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
             SizedBox(height: SizeConfig.getProportionateHeight(20)),
             InkWell(
               onTap: () {
-                
+                final title = _titleController.text.trim();
+                final description = _descriptionController.text.trim();
+                String priority = _priorities[_selectedPriority];
+                String date = DateTime.now().toString();
+                final myTask = Task(
+                  title: title,
+                  description: description,
+                  priority: priority,
+                  date: date,
+                );
+                ref
+                    .read(firestoreControllerProvider.notifier)
+                    .addTask(task: myTask, userId: userId);
+                _titleController.clear();
+                _descriptionController.clear();
+                setState(() {
+                  _selectedPriority = 0;
+                });
               },
               child: Container(
                 alignment: Alignment.center,
@@ -121,19 +148,21 @@ class _AddTaskScreenState extends ConsumerState<AddTaskScreen> {
                   color: Colors.deepOrange,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add, color: Colors.white, size: 30),
-                    Text(
-                      'Add Task',
-                      style: AppStyles.normalTextStyle.copyWith(
-                        color: Colors.white,
-                        fontSize: 20,
+                child: state.isLoading
+                    ? const CircularProgressIndicator()
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add, color: Colors.white, size: 30),
+                          Text(
+                            'Add Task',
+                            style: AppStyles.normalTextStyle.copyWith(
+                              color: Colors.white,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
