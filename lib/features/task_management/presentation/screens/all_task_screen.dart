@@ -48,6 +48,5 @@ class _AllTaskScreenState extends ConsumerState<AllTaskScreen> {
         },
       ),
     );
-    ;
   }
 }

@@ -1,10 +1,12 @@
 import 'package:firebase_todo_app/features/authentication/data/auth_repository.dart';
 import 'package:firebase_todo_app/features/task_management/data/firestore_repository.dart';
 import 'package:firebase_todo_app/features/task_management/domain/task.dart';
+import 'package:firebase_todo_app/features/task_management/presentation/controllers/firestore_controller.dart';
 import 'package:firebase_todo_app/utils/appstyles.dart';
 import 'package:firebase_todo_app/utils/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 String formattedDate(String date) {
@@ -23,6 +25,106 @@ class TaskItem extends ConsumerStatefulWidget {
 }
 
 class _TaskItemState extends ConsumerState<TaskItem> {
+  void _deleteTask(String taskId) {
+    final userId = ref.watch(currentUserProvider)!.uid;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Are you sure', style: AppStyles.titleTextStyle),
+        icon: Icon(Icons.delete, size: 60, color: Colors.red),
+        alignment: Alignment.center,
+        content: const Text('Tap to delete task!'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              context.pop();
+            },
+            child: Text('Cancel', style: AppStyles.normalTextStyle),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ref
+                  .read(firestoreControllerProvider.notifier)
+                  .deleteTask(userId: userId, taskId: taskId);
+            },
+            child: Text('Delete', style: AppStyles.normalTextStyle),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _updateTask() {
+    TextEditingController titleController = TextEditingController(
+      text: widget.task.title,
+    );
+    TextEditingController descriptionController = TextEditingController(
+      text: widget.task.description,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.edit, color: Colors.green, size: 40),
+        title: Text('Update Task', style: AppStyles.normalTextStyle),
+        content: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(label: Text('Title')),
+            ),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(label: Text('Description')),
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  context.pop();
+                },
+                child: Text('Cancel', style: AppStyles.normalTextStyle),
+              ),
+              SizedBox(width: SizeConfig.getProportionateWidth(20)),
+              ElevatedButton(
+                onPressed: () {
+                  String newTitle = titleController.text;
+                  String newDescription = descriptionController.text;
+
+                  final userId = ref.read(currentUserProvider)!.uid;
+
+                  final newTask = Task(
+                    title: newTitle,
+                    description: newDescription,
+                    priority: widget.task.priority,
+                    id: widget.task.id,
+                    isComplete: widget.task.isComplete,
+                    date: DateTime.now().toString(),
+                  );
+
+                  ref
+                      .read(firestoreControllerProvider.notifier)
+                      .updateTask(
+                        task: newTask,
+                        userId: userId,
+                        taskId: widget.task.id,
+                      );
+                  context.pop();
+                },
+                child: Text('Update', style: AppStyles.normalTextStyle),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
@@ -129,7 +231,7 @@ class _TaskItemState extends ConsumerState<TaskItem> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _updateTask,
                   child: Container(
                     height: SizeConfig.getProportionateHeight(40),
                     padding: EdgeInsets.all(5),
@@ -145,7 +247,9 @@ class _TaskItemState extends ConsumerState<TaskItem> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    _deleteTask(widget.task.id);
+                  },
                   child: Container(
                     height: SizeConfig.getProportionateHeight(40),
                     padding: EdgeInsets.all(5),
