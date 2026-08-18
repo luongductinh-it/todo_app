@@ -5,12 +5,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'firestore_controller.g.dart';
 
-@riverpod
-class FirestoreController extends _$FirestoreController{
+@Riverpod(keepAlive: true)
+class FirestoreController extends _$FirestoreController {
   @override
-  FutureOr<dynamic> build() {
-    throw UnimplementedError();
-  }
+  FutureOr<dynamic> build() {}
 
   Future<void> addTask({required Task task, required String userId}) async {
     state = const AsyncLoading();

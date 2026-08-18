@@ -37,7 +37,7 @@ class _TaskItemState extends ConsumerState<TaskItem> {
         actions: [
           ElevatedButton(
             onPressed: () {
-              context.pop();
+              Navigator.pop(context);
             },
             child: Text('Cancel', style: AppStyles.normalTextStyle),
           ),
@@ -46,6 +46,7 @@ class _TaskItemState extends ConsumerState<TaskItem> {
               await ref
                   .read(firestoreControllerProvider.notifier)
                   .deleteTask(userId: userId, taskId: taskId);
+              Navigator.pop(context);
             },
             child: Text('Delete', style: AppStyles.normalTextStyle),
           ),
@@ -86,13 +87,13 @@ class _TaskItemState extends ConsumerState<TaskItem> {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  context.pop();
+                  Navigator.pop(context);
                 },
                 child: Text('Cancel', style: AppStyles.normalTextStyle),
               ),
               SizedBox(width: SizeConfig.getProportionateWidth(20)),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   String newTitle = titleController.text;
                   String newDescription = descriptionController.text;
 
@@ -107,14 +108,14 @@ class _TaskItemState extends ConsumerState<TaskItem> {
                     date: DateTime.now().toString(),
                   );
 
-                  ref
+                  await ref
                       .read(firestoreControllerProvider.notifier)
                       .updateTask(
                         task: newTask,
                         userId: userId,
                         taskId: widget.task.id,
                       );
-                  context.pop();
+                  Navigator.pop(context);
                 },
                 child: Text('Update', style: AppStyles.normalTextStyle),
               ),
@@ -206,66 +207,60 @@ class _TaskItemState extends ConsumerState<TaskItem> {
               ],
             ),
           ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Transform.scale(
-                  scale: 1.8,
-                  child: Checkbox(
-                    value: widget.task.isComplete,
-                    onChanged: (bool? value) {
-                      if (value == null) {
-                        return;
-                      } else {
-                        final userId = ref.watch(currentUserProvider)!.uid;
-                        ref
-                            .read(firestoreRepositoryProvider)
-                            .updateTaskCompletion(
-                              userId: userId,
-                              taskId: widget.task.id,
-                              isComplete: value,
-                            );
-                      }
-                    },
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _updateTask,
-                  child: Container(
-                    height: SizeConfig.getProportionateHeight(40),
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.edit,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    _deleteTask(widget.task.id);
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Transform.scale(
+                scale: 1.8,
+                child: Checkbox(
+                  value: widget.task.isComplete,
+                  onChanged: (bool? value) {
+                    if (value == null) {
+                      return;
+                    } else {
+                      final userId = ref.watch(currentUserProvider)!.uid;
+                      ref
+                          .read(firestoreRepositoryProvider)
+                          .updateTaskCompletion(
+                            userId: userId,
+                            taskId: widget.task.id,
+                            isComplete: value,
+                          );
+                    }
                   },
-                  child: Container(
-                    height: SizeConfig.getProportionateHeight(40),
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                      size: 30,
-                    ),
+                ),
+              ),
+              GestureDetector(
+                onTap: _updateTask,
+                child: Container(
+                  height: SizeConfig.getProportionateHeight(40),
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit, color: Colors.white, size: 30),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  _deleteTask(widget.task.id);
+                },
+                child: Container(
+                  height: SizeConfig.getProportionateHeight(40),
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    size: 30,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

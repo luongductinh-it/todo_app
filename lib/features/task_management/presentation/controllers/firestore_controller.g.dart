@@ -20,7 +20,7 @@ final class FirestoreControllerProvider
         argument: null,
         retry: null,
         name: r'firestoreControllerProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -34,7 +34,7 @@ final class FirestoreControllerProvider
 }
 
 String _$firestoreControllerHash() =>
-    r'90696dd71be613f294e72bf5318da7efcb72c32f';
+    r'25b805921fa1ad24391537b8453819e590c5bcde';
 
 abstract class _$FirestoreController extends $AsyncNotifier<dynamic> {
   FutureOr<dynamic> build();
